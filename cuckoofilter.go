@@ -7,7 +7,7 @@ import (
 )
 
 const maxCuckooCount = 500
-
+var redirect uint = 0
 // Filter is a probabilistic counter
 type Filter struct {
 	buckets   []bucket
@@ -66,6 +66,7 @@ func (cf *Filter) Insert(data []byte) bool {
 	if cf.insert(fp, i2) {
 		return true
 	}
+	redirect++
 	return cf.reinsert(fp, randi(i1, i2))
 }
 
@@ -99,6 +100,10 @@ func (cf *Filter) reinsert(fp fingerprint, i uint) bool {
 		}
 	}
 	return false
+}
+
+func (cf *Filter)LoadFactor() float32 {
+	return (float32(cf.count) / (float32(len(cf.buckets)) * bucketSize))
 }
 
 // Delete data from counter if exists and return if deleted or not

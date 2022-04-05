@@ -166,7 +166,7 @@ func BenchmarkFilter_Insert(b *testing.B) {
 	var hash [32]byte
 	start := time.Now().Nanosecond()
 	//var timeList []time.Duration
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < b.N; i++ {
 
 		io.ReadFull(rand.Reader, hash[:])
 		filter.InsertUnique(hash[:])
@@ -175,8 +175,8 @@ func BenchmarkFilter_Insert(b *testing.B) {
 		//fmt.Println("时延: ", elapsed.Nanoseconds())
 		//redirectList = append(redirectList, redirect)
 		//factors = append(factors, filter.LoadFactor())
-		//fmt.Println("重定位次数: ",redirect)
-		//fmt.Println("负载因子: ",filter.LoadFactor())
+		fmt.Println("重定位次数: ",redirect)
+		fmt.Println("负载因子: ",filter.LoadFactor())
 	}
 	elapsed := time.Now().Nanosecond()
 	fmt.Println("time elapse in nano: ", elapsed-start)
