@@ -66,7 +66,7 @@ func (cf *Filter) Insert(data []byte) bool {
 	if cf.insert(fp, i2) {
 		return true
 	}
-	redirect++
+
 	return cf.reinsert(fp, randi(i1, i2))
 }
 
@@ -92,7 +92,7 @@ func (cf *Filter) reinsert(fp fingerprint, i uint) bool {
 		oldfp := fp
 		fp = cf.buckets[i][j]
 		cf.buckets[i][j] = oldfp
-
+		redirect++
 		// look in the alternate location for that random element
 		i = getAltIndex(fp, i, cf.bucketPow)
 		if cf.insert(fp, i) {
