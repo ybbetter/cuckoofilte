@@ -89,28 +89,39 @@ func (cf *Filter) Insert(data []byte) bool {
 	// 第二步，当第一个位置不为空时，根据第一步的指纹和位置进行异或操作得到第二个的位置
 	i2 := getAltIndex(fp, i1, cf.bucketPow)
 
-	// 第三部，选择两位置中负载少的桶进行插入
+	// 第三步，选择两位置中负载少的桶进行插入
 	if cf.buckets[i1].LoadFactor() < cf.buckets[i2].LoadFactor() {
+		// 如果整体负载小于阈值，进行主动重定位式插入
+		if cf.LoadFactor() < limitLoadFactor {
+			// 如果候选桶的负载因子小于阈值直接插入
+			if cf.buckets[i1].LoadFactor() < limitLoadFactor {
+				// 直接插入
+				if cf.insert(fp, i1) {
+					return true
+				}
+			}
+			// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
+			redirect++
+			return cf.reinsert(fp,i1)
+		}
+		// 整体负载大于阈值，则进行整体重定位
+		return cf.allReinsert(fp, i1)
+	}
+	// 如果整体负载小于阈值，进行主动重定位式插入
+	if cf.LoadFactor() < limitLoadFactor {
 		// 如果候选桶的负载因子小于阈值直接插入
-		if cf.buckets[i1].LoadFactor() < limitLoadFactor {
+		if cf.buckets[i2].LoadFactor() < limitLoadFactor {
 			// 直接插入
-			if cf.insert(fp, i1) {
+			if cf.insert(fp, i2) {
 				return true
 			}
 		}
 		// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
 		redirect++
-		return cf.reinsert(fp,i1)
+		return cf.reinsert(fp, i2)
 	}
-	if cf.buckets[i2].LoadFactor() < limitLoadFactor {
-		// 直接插入
-		if cf.insert(fp, i2) {
-			return true
-		}
-	}
-	// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
-	redirect++
-	return cf.reinsert(fp,i2)
+	// 整体负载大于阈值，则进行整体重定位
+	return cf.reinsert(fp, i2)
 }
 
 // PositiveInsert 主动重定位插入函数
