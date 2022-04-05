@@ -164,9 +164,9 @@ func BenchmarkFilter_Insert(b *testing.B) {
 	//var redirectList []uint
 	//var factors []float32
 	var hash [32]byte
-	start := time.Now().Nanosecond()
+	start := time.Now()
 	//var timeList []time.Duration
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < 200000; i++ {
 
 		io.ReadFull(rand.Reader, hash[:])
 		filter.InsertUnique(hash[:])
@@ -178,8 +178,8 @@ func BenchmarkFilter_Insert(b *testing.B) {
 		fmt.Println("重定位次数: ",redirect)
 		fmt.Println("负载因子: ",filter.LoadFactor())
 	}
-	elapsed := time.Now().Nanosecond()
-	fmt.Println("time elapse in nano: ", elapsed-start)
+	elapsed := time.Since(start)
+	fmt.Println("time elapse in nano: ", elapsed)
 	//CuckooPlot(redirectList,factors,100000)
 	//CuckooPlot(timeList,factors,100000)
 }
