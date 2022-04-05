@@ -30,8 +30,8 @@ func (b *bucket)IsFull() bool {
 
 func (b *bucket)LoadFactor() float32 {
 	count := 0
-	for i, _ := range b {
-		if b[i] != nullFp {
+	for _, tmp := range b {
+		if tmp != nullFp {
 			count++
 		}
 	}

@@ -91,11 +91,11 @@ func (cf *Filter) Insert(data []byte) bool {
 	i2 := getAltIndex(fp, i1, cf.bucketPow)
 
 	// 第三步，选择两位置中负载少的桶进行插入
-	if cf.buckets[i1].LoadFactor() < cf.buckets[i2].LoadFactor() {
+	if cf.buckets[i1].LoadFactor() <= cf.buckets[i2].LoadFactor() {
 		// 如果整体负载小于阈值，进行主动重定位式插入
-		if cf.LoadFactor() < limitLoadFactor {
+		if cf.LoadFactor() <= limitLoadFactor {
 			// 如果候选桶的负载因子小于阈值直接插入
-			if cf.buckets[i1].LoadFactor() < limitLoadFactor {
+			if cf.buckets[i1].LoadFactor() <= limitLoadFactor {
 				// 直接插入
 				if cf.insert(fp, i1) {
 					return true
@@ -108,28 +108,29 @@ func (cf *Filter) Insert(data []byte) bool {
 		// 整体负载大于阈值，则进行整体重定位
 		//redirect++
 		return cf.allReinsert(fp, i1)
-	}
-	// 如果整体负载小于阈值，进行主动重定位式插入
-	if cf.LoadFactor() < limitLoadFactor {
-		// 如果候选桶的负载因子小于阈值直接插入
-		if cf.buckets[i2].LoadFactor() < limitLoadFactor {
-			// 直接插入
-			if cf.insert(fp, i2) {
-				return true
+	} else {
+		// 如果整体负载小于阈值，进行主动重定位式插入
+		if cf.LoadFactor() <= limitLoadFactor {
+			// 如果候选桶的负载因子小于阈值直接插入
+			if cf.buckets[i2].LoadFactor() <= limitLoadFactor {
+				// 直接插入
+				if cf.insert(fp, i2) {
+					return true
+				}
 			}
+			// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
+			//redirect++
+			return cf.reinsert(fp, i2)
 		}
-		// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
+		// 整体负载大于阈值，则进行整体重定位
 		//redirect++
-		return cf.reinsert(fp, i2)
+		return cf.allReinsert(fp, i2)
 	}
-	// 整体负载大于阈值，则进行整体重定位
-	//redirect++
-	return cf.reinsert(fp, i2)
 }
 
 // PositiveInsert 主动重定位插入函数
 func (cf *Filter)PositiveInsert(fp fingerprint, i uint) bool {
-	if cf.buckets[i].LoadFactor() < limitLoadFactor {
+	if cf.buckets[i].LoadFactor() <= limitLoadFactor {
 		// 按照第一个求出的位置进行插入，成功直接返回，失败则继续
 		if cf.insert(fp, i) {
 			return true
@@ -192,7 +193,7 @@ func (cf *Filter) reinsert(fp fingerprint, i uint) bool {
 	// look in the alternate location for that random element
 	i = getAltIndex(fp, i, cf.bucketPow)
 	// 主动重定位次数小于阈值的话，继续进行主动重定位
-	if cf.pRedirect < positiveCuckooCount {
+	if cf.pRedirect <= positiveCuckooCount {
 		return cf.PositiveInsert(fp, i)
 	}
 	// 否则进行整体重定位
