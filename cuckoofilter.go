@@ -102,11 +102,11 @@ func (cf *Filter) Insert(data []byte) bool {
 				}
 			}
 			// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
-			redirect++
+
 			return cf.reinsert(fp,i1)
 		}
 		// 整体负载大于阈值，则进行整体重定位
-		redirect++
+		//redirect++
 		return cf.allReinsert(fp, i1)
 	}
 	// 如果整体负载小于阈值，进行主动重定位式插入
@@ -119,11 +119,11 @@ func (cf *Filter) Insert(data []byte) bool {
 			}
 		}
 		// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
-		redirect++
+		//redirect++
 		return cf.reinsert(fp, i2)
 	}
 	// 整体负载大于阈值，则进行整体重定位
-	redirect++
+	//redirect++
 	return cf.reinsert(fp, i2)
 }
 
@@ -136,7 +136,7 @@ func (cf *Filter)PositiveInsert(fp fingerprint, i uint) bool {
 		}
 	}
 	// 如果候选桶的负载大于设置的阈值0.5，需要随机选取桶中的受害者,进行主动重定位的插入
-	redirect++
+	//redirect++
 	return cf.reinsert(fp,i)
 }
 
@@ -187,6 +187,7 @@ func (cf *Filter) reinsert(fp fingerprint, i uint) bool {
 	fp = cf.buckets[i][j]
 	cf.buckets[i][j] = oldfp
 	cf.pRedirect++
+	redirect++
 	// 找到受害者元素的另一个位置
 	// look in the alternate location for that random element
 	i = getAltIndex(fp, i, cf.bucketPow)
@@ -209,7 +210,7 @@ func (cf *Filter)allReinsert(fp fingerprint, i uint) bool {
 		oldfp := fp
 		fp = cf.buckets[i][j]
 		cf.buckets[i][j] = oldfp
-		cf.pRedirect++
+		redirect++
 
 		// look in the alternate location for that random element
 		i = getAltIndex(fp, i, cf.bucketPow)
