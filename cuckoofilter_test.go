@@ -157,7 +157,7 @@ func TestFilter_Insert(t *testing.T) {
 }
 
 func BenchmarkFilter_Insert(b *testing.B) {
-	const cap = 100000
+	const cap = 1000000
 	filter := NewFilter(cap)
 
 	//b.ResetTimer()

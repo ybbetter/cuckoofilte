@@ -34,6 +34,7 @@ func NewFilter(capacity uint) *Filter {
 		buckets:   buckets,
 		count:     0,
 		bucketPow: uint(bits.TrailingZeros(capacity)),
+		pRedirect: 0,
 	}
 }
 
@@ -105,6 +106,7 @@ func (cf *Filter) Insert(data []byte) bool {
 			return cf.reinsert(fp,i1)
 		}
 		// 整体负载大于阈值，则进行整体重定位
+		redirect++
 		return cf.allReinsert(fp, i1)
 	}
 	// 如果整体负载小于阈值，进行主动重定位式插入
@@ -121,6 +123,7 @@ func (cf *Filter) Insert(data []byte) bool {
 		return cf.reinsert(fp, i2)
 	}
 	// 整体负载大于阈值，则进行整体重定位
+	redirect++
 	return cf.reinsert(fp, i2)
 }
 
