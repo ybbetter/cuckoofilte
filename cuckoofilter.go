@@ -20,6 +20,7 @@ type Filter struct {
 // about ~1MB on 64-bit machines.
 func NewFilter(capacity uint) *Filter {
 	capacity = getNextPow2(uint64(capacity)) / bucketSize
+	fmt.Println(capacity)
 	if capacity == 0 {
 		capacity = 1
 	}

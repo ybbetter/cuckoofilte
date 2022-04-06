@@ -2,6 +2,8 @@
 *.o
 *.a
 *.so
+*.csv
+*.png
 
 # Folders
 _obj
