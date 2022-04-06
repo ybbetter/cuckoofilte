@@ -167,35 +167,37 @@ func TestFilter_Insert_Time(t *testing.T) {
 	var factors []float32
 	var hash [32]byte
 
-	var timeList []time.Duration
+	var timeList []int64
 	// 124518
 	// 131072
 	start := time.Now()
-	for i := 0; i < 124518; i++ {
+	//fmt.Println(start)
+	for i := 0; i < 131072; i++ {
 
 		io.ReadFull(rand.Reader, hash[:])
 		filter.Insert(hash[:])
+		//elapsed := time.Since(start)
 		elapsed := time.Since(start)
-		timeList = append(timeList, elapsed)
+		timeList = append(timeList, elapsed.Nanoseconds())
 		//fmt.Println("时延: ", elapsed)
 		//redirectList = append(redirectList, redirect)
 		factors = append(factors, filter.LoadFactor())
 		//fmt.Println("重定位次数: ",redirect)
 		//fmt.Println("负载因子: ",filter.LoadFactor())
 	}
-	for i := 0; i < 124518; i++ {
+	for i := 0; i < 131072; i++ {
 		fmt.Println("负载因子: ",factors[i])
 		fmt.Println(timeList[i])
 	}
-	filename := "data-time-old.csv"
+	filename := "data-time-master.csv"
 	File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
 	if err!=nil{
 		fmt.Println("文件打开失败！")
 	}
 	defer File.Close()
 	writer := csv.NewWriter(File)
-	for i := 0; i < 124518; i++ {
-		insertData := []string{timeList[i].String(),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
+	for i := 0; i < 131072; i++ {
+		insertData := []string{strconv.FormatInt(timeList[i],10),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
 		err = writer.Write(insertData)
 		if err != nil {
 			fmt.Println("写入文件失败")
