@@ -3,11 +3,13 @@ package cuckoo
 import (
 	"bufio"
 	"crypto/rand"
+	"encoding/csv"
 	"fmt"
 	"gonum.org/v1/plot/vg"
 	"io"
 	"os"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -161,26 +163,43 @@ func BenchmarkFilter_Insert(b *testing.B) {
 	filter := NewFilter(cap)
 
 	//b.ResetTimer()
-	//var redirectList []uint
-	//var factors []float32
+	var redirectList []uint
+	var factors []float32
 	var hash [32]byte
 	start := time.Now().Nanosecond()
 	//var timeList []time.Duration
-	for i := 0; i < b.N; i++ {
-
+	// 在容量是100000的条件下，满桶元素数量为32748*4*0.95=124518
+	// 负载因子为1元素数量为131072
+	for i := 0; i < 124518; i++ {
 		io.ReadFull(rand.Reader, hash[:])
 		filter.InsertUnique(hash[:])
 
 		//timeList = append(timeList, elapsed)
 		//fmt.Println("时延: ", elapsed.Nanoseconds())
-		//redirectList = append(redirectList, redirect)
-		//factors = append(factors, filter.LoadFactor())
+		redirectList = append(redirectList, redirect)
+		factors = append(factors, filter.LoadFactor())
 		fmt.Println("重定位次数: ",redirect)
 		fmt.Println("负载因子: ",filter.LoadFactor())
 	}
+	filename := "data.csv"
+	File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
+	if err!=nil{
+		fmt.Println("文件打开失败！")
+	}
+	defer File.Close()
+	writer := csv.NewWriter(File)
+	for i := 0; i < 124518; i++ {
+		insertData := []string{strconv.FormatUint(uint64(redirectList[i]),10),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
+		err = writer.Write(insertData)
+		if err != nil {
+			fmt.Println("写入文件失败")
+		}
+		writer.Flush()
+	}
+
 	elapsed := time.Now().Nanosecond()
 	fmt.Println("time elapse in nano: ", elapsed-start)
-	//CuckooPlot(redirectList,factors,100000)
+	CuckooPlot(redirectList,factors,124518)
 	//CuckooPlot(timeList,factors,100000)
 }
 

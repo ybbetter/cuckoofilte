@@ -2,6 +2,8 @@
 *.o
 *.a
 *.so
+*.csv
+*.bmp
 
 # Folders
 _obj
@@ -22,5 +24,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
+*.png
 
 .idea
