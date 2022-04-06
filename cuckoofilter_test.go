@@ -187,21 +187,77 @@ func TestFilter_Insert_Time(t *testing.T) {
 		fmt.Println("负载因子: ",factors[i])
 		fmt.Println(timeList[i])
 	}
-	//filename := "data-time-old.csv"
-	//File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
-	//if err!=nil{
-	//	fmt.Println("文件打开失败！")
-	//}
-	//defer File.Close()
-	//writer := csv.NewWriter(File)
-	//for i := 0; i < 124518; i++ {
-	//	insertData := []string{strconv.FormatInt(int64(timeList[i].Nanoseconds()),19),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
-	//	err = writer.Write(insertData)
-	//	if err != nil {
-	//		fmt.Println("写入文件失败")
-	//	}
-	//	writer.Flush()
-	//}
+	filename := "data-time-old.csv"
+	File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
+	if err!=nil{
+		fmt.Println("文件打开失败！")
+	}
+	defer File.Close()
+	writer := csv.NewWriter(File)
+	for i := 0; i < 124518; i++ {
+		insertData := []string{timeList[i].String(),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
+		err = writer.Write(insertData)
+		if err != nil {
+			fmt.Println("写入文件失败")
+		}
+		writer.Flush()
+	}
+	////CuckooPlot(redirectList,factors,100000)
+	////CuckooPlot(timeList,factors,100000)
+}
+
+func TestFilter_Insert_FullBucket(t *testing.T) {
+	const cap = 100000
+	filter := NewFilter(cap)
+
+	//b.ResetTimer()
+	//var redirectList []uint
+	var factors []float32
+	var fullbuckets []uint
+	var fullbucket uint
+	var hash [32]byte
+
+	//var timeList []time.Duration
+	// 124518
+	// 131072
+	//start := time.Now()
+	for i := 0; i < 124518; i++ {
+		fullbucket = 0
+		io.ReadFull(rand.Reader, hash[:])
+		filter.Insert(hash[:])
+		for _, bucket := range filter.buckets {
+			if bucket.IsFull() {
+				fullbucket++
+			}
+		}
+		fullbuckets = append(fullbuckets, fullbucket)
+		//elapsed := time.Since(start)
+		//timeList = append(timeList, elapsed)
+		//fmt.Println("时延: ", elapsed)
+		//redirectList = append(redirectList, redirect)
+		factors = append(factors, filter.LoadFactor())
+		//fmt.Println("重定位次数: ",redirect)
+		//fmt.Println("负载因子: ",filter.LoadFactor())
+	}
+	for i := 0; i < 124518; i++ {
+		fmt.Println("负载因子: ",factors[i])
+		fmt.Println("满桶个数: ",fullbuckets[i])
+	}
+	filename := "data-bucket-old.csv"
+	File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
+	if err!=nil{
+		fmt.Println("文件打开失败！")
+	}
+	defer File.Close()
+	writer := csv.NewWriter(File)
+	for i := 0; i < 124518; i++ {
+		insertData := []string{strconv.FormatUint(uint64(fullbuckets[i]),10),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
+		err = writer.Write(insertData)
+		if err != nil {
+			fmt.Println("写入文件失败")
+		}
+		writer.Flush()
+	}
 	////CuckooPlot(redirectList,factors,100000)
 	////CuckooPlot(timeList,factors,100000)
 }
@@ -220,7 +276,7 @@ func BenchmarkFilter_Insert(b *testing.B) {
 	// 负载因子为1元素数量为131072
 	for i := 0; i < 124518; i++ {
 		io.ReadFull(rand.Reader, hash[:])
-		filter.InsertUnique(hash[:])
+		filter.Insert(hash[:])
 
 		//timeList = append(timeList, elapsed)
 		//fmt.Println("时延: ", elapsed.Nanoseconds())
@@ -229,7 +285,7 @@ func BenchmarkFilter_Insert(b *testing.B) {
 		fmt.Println("重定位次数: ",redirect)
 		fmt.Println("负载因子: ",filter.LoadFactor())
 	}
-	filename := "data.csv"
+	filename := "data-master.csv"
 	File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
 	if err!=nil{
 		fmt.Println("文件打开失败！")
