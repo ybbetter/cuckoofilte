@@ -133,7 +133,7 @@ func TestFilter_Insert_Time(t *testing.T) {
 
 	//b.ResetTimer()
 	//var redirectList []uint
-	//var factors []float32
+	var factors []float32
 	var hash [32]byte
 
 	var timeList []time.Duration
@@ -148,28 +148,29 @@ func TestFilter_Insert_Time(t *testing.T) {
 		timeList = append(timeList, elapsed)
 		//fmt.Println("时延: ", elapsed)
 		//redirectList = append(redirectList, redirect)
-		//factors = append(factors, filter.LoadFactor())
+		factors = append(factors, filter.LoadFactor())
 		//fmt.Println("重定位次数: ",redirect)
 		//fmt.Println("负载因子: ",filter.LoadFactor())
 	}
 	for i := 0; i < 124518; i++ {
+		fmt.Println("负载因子: ",factors[i])
 		fmt.Println(timeList[i])
 	}
-	//filename := "data-time-old.csv"
-	//File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
-	//if err!=nil{
-	//	fmt.Println("文件打开失败！")
-	//}
-	//defer File.Close()
-	//writer := csv.NewWriter(File)
-	//for i := 0; i < 124518; i++ {
-	//	insertData := []string{strconv.FormatInt(int64(timeList[i].Nanoseconds()),19),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
-	//	err = writer.Write(insertData)
-	//	if err != nil {
-	//		fmt.Println("写入文件失败")
-	//	}
-	//	writer.Flush()
-	//}
+	filename := "data-time-old.csv"
+	File,err:=os.OpenFile(filename,os.O_RDWR|os.O_APPEND|os.O_CREATE,0666)
+	if err!=nil{
+		fmt.Println("文件打开失败！")
+	}
+	defer File.Close()
+	writer := csv.NewWriter(File)
+	for i := 0; i < 124518; i++ {
+		insertData := []string{timeList[i].String(),strconv.FormatFloat(float64(factors[i]),'f',10,32)}
+		err = writer.Write(insertData)
+		if err != nil {
+			fmt.Println("写入文件失败")
+		}
+		writer.Flush()
+	}
 	////CuckooPlot(redirectList,factors,100000)
 	////CuckooPlot(timeList,factors,100000)
 }
